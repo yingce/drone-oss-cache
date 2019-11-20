@@ -52,6 +52,7 @@ docker run --rm \
 Aliyun OSS provider
 docker run --rm \
   -e PLUGIN_PROVIDER=OSS \
+  -e PLUGIN_RESTORE=true \
   -e PLUGIN_ENDPOINT="https://oss-cn-beijing.aliyuncs.com" \
   -e PLUGIN_ACCESS_KEY="myaccesskey" \
   -e PLUGIN_SECRET_KEY="mysecretKey" \

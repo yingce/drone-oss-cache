@@ -1,9 +1,9 @@
 package aliyun_oss
 
 import (
-	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -123,10 +123,16 @@ func (s *ossStorage) Put(p string, src io.Reader) error {
 		return err
 	}
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(src)
+	h, err := bkt.GetObjectMeta(key)
 
-	log.Infof("Uploaded %s to server", humanize.Bytes(uint64(buf.Len())))
+	if err != nil {
+		return err
+	}
+
+	length := h.Get("Content-Length")
+	lengthInt, _ := strconv.Atoi(length)
+
+	log.Infof("Uploaded %s to server", humanize.Bytes(uint64(lengthInt)))
 
 	return nil
 }
@@ -137,7 +143,7 @@ func (s *ossStorage) List(p string) ([]storage.FileEntry, error) {
 	log.Infof("Retrieving objects in bucket %s at %s", bucket, key)
 
 	if len(bucket) == 0 || len(key) == 0 {
-		return nil, fmt.Errorf("Invalid path %s====", p)
+		return nil, fmt.Errorf("Invalid path %s", p)
 	}
 
 	exists, err := s.client.IsBucketExist(bucket)

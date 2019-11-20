@@ -30,7 +30,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/drone-oss-cache .
+COPY --from=builder /drone-oss-cache .
 
 # Command to run the executable
-CMD ["/root/drone-oss-cache"]
+ENTRYPOINT /drone-oss-cache
