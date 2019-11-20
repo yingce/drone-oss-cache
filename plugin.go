@@ -3,12 +3,15 @@ package main
 import (
 	"io/ioutil"
 	pathutil "path"
+	"strings"
 	"time"
 
-	"github.com/drone/drone-cache-lib/archive/util"
-	"github.com/drone/drone-cache-lib/cache"
-	"github.com/drone/drone-cache-lib/storage"
+	"github.com/yingce/drone-oss-cache/cachekey"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/yingce/drone-oss-cache/lib/cache/archive/util"
+	"github.com/yingce/drone-oss-cache/lib/cache/cache"
+	"github.com/yingce/drone-oss-cache/lib/cache/storage"
 )
 
 // Plugin structure
@@ -38,6 +41,25 @@ const (
 // Exec runs the plugin
 func (p *Plugin) Exec() error {
 	var err error
+
+	var useCheckSum bool
+
+	if strings.Contains(p.Path, "checksum") || strings.Contains(p.Filename, "checksum") {
+		useCheckSum = true
+	}
+
+	p.Path, err = cachekey.CacheKey(p.Path, cachekey.MetaData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	p.Filename, err = cachekey.CacheKey(p.Filename, cachekey.MetaData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	p.FallbackPath, err = cachekey.CacheKey(p.FallbackPath, cachekey.MetaData{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	at, err := util.FromFilename(p.Filename)
 
@@ -72,10 +94,17 @@ func (p *Plugin) Exec() error {
 
 	if p.Mode == RebuildMode {
 		log.Infof("Rebuilding cache at %s", path)
-		err = c.Rebuild(p.Mount, path)
-
-		if err == nil {
-			log.Infof("Cache rebuilt")
+		var exists bool
+		if useCheckSum {
+			exists, _ = p.Storage.Exists(path)
+		}
+		if !exists {
+			err = c.Rebuild(p.Mount, path)
+			if err == nil {
+				log.Infof("Cache rebuilt")
+			}
+		} else {
+			log.Infof("Cache skip, object exists[using checksum func]")
 		}
 	}
 

@@ -5,11 +5,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/drone/drone-cache-lib/storage"
 	"github.com/dustin/go-humanize"
 	"github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 	log "github.com/sirupsen/logrus"
+	"github.com/yingce/drone-oss-cache/lib/cache/storage"
 )
 
 // Options contains configuration for the S3 connection.
@@ -182,6 +182,25 @@ func (s *s3Storage) List(p string) ([]storage.FileEntry, error) {
 	log.Infof("Found %d objects in bucket %s at %s", len(objects), bucket, key)
 
 	return objects, nil
+}
+
+func (s *s3Storage) Exists(p string) (bool, error) {
+	bucket, key := splitBucket(p)
+
+	exists, err := s.client.BucketExists(bucket)
+
+	if err != nil {
+		return false, fmt.Errorf("%s does not exist: %s", p, err)
+	}
+	if !exists {
+		return false, fmt.Errorf("%s does not exist", p)
+	}
+
+	_, err = s.client.StatObject(bucket, key, minio.StatObjectOptions{})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *s3Storage) Delete(p string) error {

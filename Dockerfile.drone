@@ -1,0 +1,11 @@
+FROM alpine
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+	apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY drone-oss-cache .
+
+# Command to run the executable
+CMD ["./drone-oss-cache"]

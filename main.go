@@ -8,10 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/drone-plugins/drone-s3-cache/storage/s3"
-	"github.com/drone/drone-cache-lib/storage"
+	"github.com/yingce/drone-oss-cache/storage/aliyun_oss"
+
+	"github.com/yingce/drone-oss-cache/lib/cache/storage"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"github.com/yingce/drone-oss-cache/storage/s3"
 )
 
 var (
@@ -26,7 +28,11 @@ func main() {
 	app.Version = version
 	app.Flags = []cli.Flag{
 		// Cache information
-
+		cli.StringFlag{
+			Name:   "provider",
+			Usage:  "Cache provider, e.g: S3 or OSS",
+			EnvVar: "PLUGIN_PROVIDER",
+		},
 		cli.StringFlag{
 			Name:   "filename",
 			Usage:  "Filename for the cache",
@@ -255,7 +261,7 @@ func run(c *cli.Context) error {
 		filename = "archive.tar"
 	}
 
-	s, err := s3Storage(c)
+	s, err := newStorage(c)
 
 	if err != nil {
 		return err
@@ -281,6 +287,29 @@ func run(c *cli.Context) error {
 	}
 
 	return p.Exec()
+}
+
+func newStorage(c *cli.Context) (storage.Storage, error) {
+	provider := c.String("provider")
+	provider = strings.ToLower(provider)
+	if provider == "" || provider == "s3" {
+		return s3Storage(c)
+	} else if provider == "oss" {
+		return ossStorage(c)
+	}
+	return nil, nil
+}
+
+func ossStorage(c *cli.Context) (storage.Storage, error) {
+	server := c.String("server")
+	if server == "" {
+		server = "https://oss-cn-beijing.aliyuncs.com"
+	}
+	return aliyun_oss.New(&aliyun_oss.Options{
+		Endpoint: server,
+		Key:      c.String("access-key"),
+		Secret:   c.String("secret-key"),
+	})
 }
 
 func s3Storage(c *cli.Context) (storage.Storage, error) {

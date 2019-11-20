@@ -26,5 +26,7 @@ _testmain.go
 release/
 vendor/
 
+.idea
+
 coverage.out
-drone-s3-cache
+drone-oss-cache
