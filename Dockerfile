@@ -1,4 +1,4 @@
-FROM registry.cn-beijing.aliyuncs.com/zhongguan/golang:1.13 as builder
+FROM 1.13 as builder
 
 # Add Maintainer Info
 LABEL maintainer="yingce@live.com"
@@ -23,10 +23,9 @@ COPY . .
 RUN BUILD_OPTS=CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o drone-oss-cache
 
 ######## Start a new stage from scratch or alpine #######
-FROM registry.cn-beijing.aliyuncs.com/zhongguan/alpine:3.10
+FROM 3.10
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-	apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
