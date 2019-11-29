@@ -7,4 +7,4 @@ WORKDIR /root/
 
 COPY drone-oss-cache /
 
-ENTRYPOINT /drone-oss-cache
+CMD ["/drone-oss-cache"]

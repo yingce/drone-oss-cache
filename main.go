@@ -10,9 +10,9 @@ import (
 
 	"github.com/yingce/drone-oss-cache/storage/aliyun_oss"
 
-	"github.com/yingce/drone-oss-cache/lib/cache/storage"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"github.com/yingce/drone-oss-cache/lib/cache/storage"
 	"github.com/yingce/drone-oss-cache/storage/s3"
 )
 
@@ -296,6 +296,8 @@ func newStorage(c *cli.Context) (storage.Storage, error) {
 		return s3Storage(c)
 	} else if provider == "oss" {
 		return ossStorage(c)
+	} else {
+		log.Fatal("not support provider")
 	}
 	return nil, nil
 }

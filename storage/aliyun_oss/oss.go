@@ -48,7 +48,7 @@ func (s *ossStorage) Get(p string, dst io.Writer) error {
 	exists, err := s.client.IsBucketExist(bucket)
 
 	if !exists {
-		log.Infof("Bucket %s already exists", bucket)
+		log.Infof("Bucket %s not exists", bucket)
 		return err
 	}
 

@@ -41,9 +41,9 @@ Support checksum function on PLUGIN_PATH and PLUGIN_FILENAME
 Support checksumLines function on PLUGIN_PATH and PLUGIN_FILENAME
 
 checksum(file_path string) retrun -> "32bit MD5 string"  
-checksum(file_path string, startLine, endLine int) retrun -> "32bit MD5 string"
+checksumLines(file_path string, startLine, endLine int) retrun -> "32bit MD5 string"
 
-write yaml with Drone  
+example yaml with Drone  
 ```yaml
 default:
   - &cache_setting
@@ -55,7 +55,7 @@ default:
       from_secret: cache_secret
     path: k8s-build-cache/sso-front #also support checksum function 
     filename: '{{ checksum "package.json" }}.tar.gz' # call checksum function
-    #OR filename: '{{ checksumLines "package.json", 3, 10 }}.tar.gz' # call checksumLines function    
+    #OR filename: '{{ checksumLines "package.json" 3 10 }}.tar.gz' # call checksumLines function    
 
 steps:
   - name: restore-cache
