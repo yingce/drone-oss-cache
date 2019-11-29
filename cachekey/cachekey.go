@@ -51,9 +51,41 @@ var funcMap = template.FuncMap{
 		}
 		return str
 	},
+	"checksumLines": func(path string, startLine, endLine int) string {
+		absPath, err := filepath.Abs(filepath.Clean(path))
+		if err != nil {
+			log.Println("cache key template/checksum could not find file")
+			return ""
+		}
+
+		f, err := os.Open(absPath)
+		if err != nil {
+			log.Println("cache key template/checksum could not open file")
+			return ""
+		}
+		defer f.Close()
+		str, err := readerLineHasher(startLine, endLine, f)
+		if err != nil {
+			log.Println("cache key template/checksum could not generate hash")
+			return ""
+		}
+		return str
+	},
 	"epoch": func() string { return strconv.FormatInt(time.Now().Unix(), 10) },
 	"arch":  func() string { return runtime.GOARCH },
 	"os":    func() string { return runtime.GOOS },
+}
+
+func readerLineHasher(startLine, endLine int, readers ...io.Reader) (string, error) {
+	h := md5.New()
+	for index, r := range readers {
+		if index >= startLine && index <= endLine {
+			if _, err := io.Copy(h, r); err != nil {
+				return "", fmt.Errorf("write reader as hash %w", err)
+			}
+		}
+	}
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 func readerHasher(readers ...io.Reader) (string, error) {

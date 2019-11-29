@@ -37,6 +37,51 @@ docker build \
 ## Usage
 
 Support providers: S3[default], OSS  
+Support checksum function on PLUGIN_PATH and PLUGIN_FILENAME  
+Support checksumLines function on PLUGIN_PATH and PLUGIN_FILENAME
+
+checksum(file_path string) retrun -> "32bit MD5 string"  
+checksum(file_path string, startLine, endLine int) retrun -> "32bit MD5 string"
+
+write yaml with Drone  
+```yaml
+default:
+  - &cache_setting
+    provider: oss # default s3 proto
+    endpoint: http://oss-cn-beijing-internal.aliyuncs.com
+    access_key:
+      from_secret: cache_key
+    secret_key:
+      from_secret: cache_secret
+    path: k8s-build-cache/sso-front #also support checksum function 
+    filename: '{{ checksum "package.json" }}.tar.gz' # call checksum function
+    #OR filename: '{{ checksumLines "package.json", 3, 10 }}.tar.gz' # call checksumLines function    
+
+steps:
+  - name: restore-cache
+    image: yingce/drone-oss-cache
+    settings:
+      <<: *cache_setting
+      restore: true
+
+  - name: install
+    image: node
+    commands:
+      - npm install
+
+  - name: build
+    image: node
+    commands:
+      - npm run build
+
+  - name: rebuild-cache
+    image: yingce/drone-oss-cache
+    settings:
+      <<: *cache_setting
+      rebuild: true
+      mount:
+        - node_modules
+```
 
 ```console
 docker run --rm \
